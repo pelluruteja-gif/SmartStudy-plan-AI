@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartStudy AI — Adaptive Exam Preparation & Priority Engine</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Plus Jakarta Sans & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              400: '#818cf8',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            },
+            priority: {
+              high: '#f43f5e',
+              medium: '#f59e0b',
+              low: '#10b981'
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-[#0b0f19] text-slate-100 min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
+
+  <!-- Background Ambient Glows -->
+  <div class="fixed top-0 left-1/4 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
+  <div class="fixed bottom-10 right-1/4 w-96 h-96 bg-cyan-600/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
+
+  <!-- Top Navigation Header -->
+  <header class="sticky top-0 z-40 glass-panel border-b border-white/10 px-4 sm:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-indigo-500/25">
+        <i data-lucide="sparkles" class="w-6 h-6 text-white"></i>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="font-extrabold text-xl tracking-tight brand-font bg-gradient-to-r from-indigo-300 via-indigo-100 to-cyan-300 bg-clip-text text-transparent">SmartStudy AI</span>
+          <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-bold border border-indigo-500/30">Adaptive Planner</span>
+        </div>
+        <p class="text-xs text-slate-400 hidden sm:block">Priority-Driven Exam Intelligence for College Students</p>
+      </div>
+    </div>
+
+    <!-- Quick Stats & Action Controls -->
+    <div class="flex items-center gap-2.5 sm:gap-4 flex-wrap">
+      <!-- Study Hours Quick Adjuster -->
+      <div class="flex items-center gap-2 bg-slate-900/80 border border-white/10 rounded-xl px-3 py-1.5 shadow-inner">
+        <i data-lucide="clock" class="w-4 h-4 text-cyan-400"></i>
+        <span class="text-xs text-slate-400 font-medium hidden md:inline">Daily Study:</span>
+        <div class="flex items-center gap-1.5">
+          <button id="decrementHoursBtn" class="w-6 h-6 rounded-md bg-white/5 hover:bg-white/10 text-slate-300 flex items-center justify-center text-sm font-bold transition">−</button>
+          <span id="headerHoursDisplay" class="text-xs sm:text-sm font-bold text-white min-w-[3rem] text-center">4.5 hrs</span>
+          <button id="incrementHoursBtn" class="w-6 h-6 rounded-md bg-white/5 hover:bg-white/10 text-slate-300 flex items-center justify-center text-sm font-bold transition">+</button>
+        </div>
+      </div>
+
+      <!-- Quick Preset Dropdown -->
+      <div class="relative">
+        <button id="presetsBtn" class="flex items-center gap-2 px-3 py-1.5 rounded-xl glass-panel-subtle hover:bg-slate-800 text-xs font-semibold text-slate-200 border border-white/10 transition">
+          <i data-lucide="folder-down" class="w-4 h-4 text-indigo-400"></i>
+          <span>Sample Exams</span>
+          <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400"></i>
+        </button>
+        <div id="presetsMenu" class="hidden absolute right-0 mt-2 w-72 glass-panel rounded-xl shadow-2xl p-2 z-50 border border-white/10">
+          <div class="text-[11px] font-bold text-slate-400 px-3 py-1 uppercase tracking-wider">College Preset Plans</div>
+          <button onclick="loadSamplePreset('cs-college')" class="w-full text-left p-2.5 rounded-lg hover:bg-white/5 transition flex flex-col gap-0.5">
+            <span class="text-xs font-semibold text-indigo-300">💻 CS Major Exams</span>
+            <span class="text-[11px] text-slate-400">OS, DSA, DBMS, Networks (5 Subjects)</span>
+          </button>
+          <button onclick="loadSamplePreset('eng-finals')" class="w-full text-left p-2.5 rounded-lg hover:bg-white/5 transition flex flex-col gap-0.5">
+            <span class="text-xs font-semibold text-rose-300">⚡ Engineering Finals</span>
+            <span class="text-[11px] text-slate-400">Signals, Microprocessors, Calc IV (4 Subjects)</span>
+          </button>
+          <button onclick="loadSamplePreset('business-finals')" class="w-full text-left p-2.5 rounded-lg hover:bg-white/5 transition flex flex-col gap-0.5">
+            <span class="text-xs font-semibold text-emerald-300">📊 Business & Finance Finals</span>
+            <span class="text-[11px] text-slate-400">Financial Accounting, Microeconomics, Stats</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Add Subject Button -->
+      <button id="openAddSubjectBtn" class="btn-glow px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold text-white flex items-center gap-2">
+        <i data-lucide="plus-circle" class="w-4 h-4"></i>
+        <span>Add Subject</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <div class="border-b border-white/10 bg-[#0d1322]/80 sticky top-[69px] z-30 backdrop-blur-md px-4 sm:px-8">
+    <div class="max-w-7xl mx-auto flex items-center gap-1 sm:gap-3 overflow-x-auto py-2 no-scrollbar">
+      <button class="nav-tab active flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition" data-target="dashboardTab">
+        <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+        <span>Dashboard & Today's Plan</span>
+      </button>
+      <button class="nav-tab flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium text-slate-400 hover:text-slate-200 transition" data-target="priorityTab">
+        <i data-lucide="calculator" class="w-4 h-4"></i>
+        <span>Priority Analysis</span>
+        <span id="highPriorityCountBadge" class="hidden text-[10px] px-1.5 py-0.2 rounded-full bg-rose-500/20 text-rose-300 font-bold border border-rose-500/30">0</span>
+      </button>
+      <button class="nav-tab flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium text-slate-400 hover:text-slate-200 transition" data-target="subjectsTab">
+        <i data-lucide="book-open" class="w-4 h-4"></i>
+        <span>Manage Subjects</span>
+        <span id="subjectCountPill" class="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-800 text-slate-300 font-semibold border border-white/10">0</span>
+      </button>
+      <button class="nav-tab flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium text-slate-400 hover:text-slate-200 transition" data-target="aiCoachTab">
+        <i data-lucide="bot" class="w-4 h-4 text-indigo-400"></i>
+        <span>AI Study Coach</span>
+        <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-indigo-500/20 text-indigo-300 font-bold border border-indigo-500/30">Adaptive</span>
+      </button>
+      <button class="nav-tab flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium text-slate-400 hover:text-slate-200 transition" data-target="timerTab">
+        <i data-lucide="timer" class="w-4 h-4 text-cyan-400"></i>
+        <span>Focus Pomodoro</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Container -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-8 space-y-8">
+
+    <!-- ========================================== -->
+    <!-- TAB 1: DASHBOARD & TODAY'S GENERATED PLAN  -->
+    <!-- ========================================== -->
+    <section id="dashboardTab" class="tab-pane active space-y-6">
+      
+      <!-- Key Metric Cards Row -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <!-- Metric 1: Total Subjects -->
+        <div class="glass-panel p-4 sm:p-5 rounded-2xl flex flex-col justify-between border border-white/10 relative overflow-hidden group">
+          <div class="flex items-center justify-between text-slate-400">
+            <span class="text-xs font-semibold uppercase tracking-wider">Total Subjects</span>
+            <div class="p-2 rounded-lg bg-indigo-500/10 text-indigo-400">
+              <i data-lucide="books" class="w-4 h-4"></i>
+            </div>
+          </div>
+          <div class="mt-3">
+            <div id="statTotalSubjects" class="text-2xl sm:text-3xl font-extrabold brand-font text-white">0</div>
+            <p class="text-[11px] text-slate-400 mt-1">Active college exams</p>
+          </div>
+        </div>
+
+        <!-- Metric 2: Highest Priority Subject -->
+        <div class="glass-panel p-4 sm:p-5 rounded-2xl flex flex-col justify-between border border-white/10 relative overflow-hidden group">
+          <div class="flex items-center justify-between text-slate-400">
+            <span class="text-xs font-semibold uppercase tracking-wider">Highest Priority</span>
+            <div class="p-2 rounded-lg bg-rose-500/10 text-rose-400">
+              <i data-lucide="flame" class="w-4 h-4"></i>
+            </div>
+          </div>
+          <div class="mt-3">
+            <div id="statHighestSubject" class="text-base sm:text-lg font-bold text-white truncate">—</div>
+            <div class="flex items-center gap-1.5 mt-1">
+              <span id="statHighestBadge" class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-slate-800 text-slate-400">No data</span>
+              <span id="statHighestScore" class="text-[11px] text-slate-400">Score: —</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Metric 3: Overall Preparation -->
+        <div class="glass-panel p-4 sm:p-5 rounded-2xl flex flex-col justify-between border border-white/10 relative overflow-hidden group">
+          <div class="flex items-center justify-between text-slate-400">
+            <span class="text-xs font-semibold uppercase tracking-wider">Overall Prep</span>
+            <div class="p-2 rounded-lg bg-cyan-500/10 text-cyan-400">
+              <i data-lucide="gauge" class="w-4 h-4"></i>
+            </div>
+          </div>
+          <div class="mt-3">
+            <div class="flex items-baseline gap-2">
+              <div id="statOverallPrep" class="text-2xl sm:text-3xl font-extrabold brand-font text-white">0%</div>
+              <span class="text-[11px] text-slate-400">readiness</span>
+            </div>
+            <!-- Progress Bar -->
+            <div class="w-full bg-slate-800 rounded-full h-2 mt-2 overflow-hidden">
+              <div id="statPrepBar" class="bg-gradient-to-r from-cyan-500 to-indigo-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Metric 4: Daily Study Hours -->
+        <div class="glass-panel p-4 sm:p-5 rounded-2xl flex flex-col justify-between border border-white/10 relative overflow-hidden group">
+          <div class="flex items-center justify-between text-slate-400">
+            <span class="text-xs font-semibold uppercase tracking-wider">Daily Study Hours</span>
+            <div class="p-2 rounded-lg bg-amber-500/10 text-amber-400">
+              <i data-lucide="hourglass" class="w-4 h-4"></i>
+            </div>
+          </div>
+          <div class="mt-3">
+            <div class="flex items-baseline gap-1.5">
+              <div id="statDailyHours" class="text-2xl sm:text-3xl font-extrabold brand-font text-white">4.5</div>
+              <span class="text-xs text-slate-400 font-medium">hrs / day</span>
+            </div>
+            <div class="flex items-center justify-between text-[11px] text-slate-400 mt-1">
+              <span id="statAllocatedTasks">0 tasks scheduled</span>
+              <button onclick="openHoursSliderModal()" class="text-indigo-400 hover:text-indigo-300 font-medium underline">Adjust</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick AI Triage Alert Banner -->
+      <div id="urgentAlertBanner" class="hidden rounded-2xl p-4 border border-rose-500/30 bg-rose-500/10 backdrop-blur-sm flex items-start sm:items-center justify-between gap-4">
+        <div class="flex items-start sm:items-center gap-3">
+          <div class="p-2.5 rounded-xl bg-rose-500/20 text-rose-400 flex-shrink-0">
+            <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold uppercase tracking-wider text-rose-400">Critical Priority Alert</span>
+              <span id="urgentSubjectBadge" class="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/30 text-rose-200 font-semibold">Urgent</span>
+            </div>
+            <p id="urgentAlertText" class="text-xs sm:text-sm text-slate-200 mt-0.5">High priority exam approaching with a significant preparation gap.</p>
+          </div>
+        </div>
+        <button onclick="switchTab('aiCoachTab')" class="text-xs px-3 py-1.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-semibold flex-shrink-0 transition flex items-center gap-1.5">
+          <span>View AI Coach Plan</span>
+          <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+        </button>
+      </div>
+
+      <!-- Two-Column Layout: Left (Today's Generated Plan), Right (Upcoming Exams) -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- Left 2 Cols: Today's Generated Plan -->
+        <div class="lg:col-span-2 space-y-4">
+          <div class="glass-panel p-5 sm:p-6 rounded-2xl border border-white/10 space-y-5">
+            
+            <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-white/10">
+              <div>
+                <div class="flex items-center gap-2.5">
+                  <h2 class="text-lg font-bold text-white flex items-center gap-2 brand-font">
+                    <i data-lucide="calendar-check-2" class="w-5 h-5 text-indigo-400"></i>
+                    Today's Generated Study Plan
+                  </h2>
+                  <span id="planDateBadge" class="text-xs px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-semibold border border-indigo-500/30">Today</span>
+                </div>
+                <p class="text-xs text-slate-400 mt-1">Weighted by priority score: higher-priority subjects receive more focused time.</p>
+              </div>
+
+              <!-- Adaptive Plan Controls -->
+              <div class="flex items-center gap-2">
+                <button onclick="recalculateAdaptivePlan()" title="Recalculate and adapt schedule based on progress and remaining time" class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-semibold text-slate-200 border border-white/10 flex items-center gap-1.5 transition">
+                  <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-cyan-400"></i>
+                  <span>Adapt Plan</span>
+                </button>
+                <button onclick="exportPlanMarkdown()" title="Export current plan to Markdown" class="p-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 transition">
+                  <i data-lucide="download" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Today's Progress Bar -->
+            <div class="bg-slate-900/60 p-3.5 rounded-xl border border-white/5 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div class="flex items-center gap-3 w-full sm:w-auto">
+                <div class="w-9 h-9 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center font-bold text-sm">
+                  <i data-lucide="check-circle-2" class="w-5 h-5 text-indigo-400"></i>
+                </div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold text-slate-200 uppercase tracking-wider">Plan Completion</span>
+                    <span id="planProgressText" class="text-xs font-extrabold text-indigo-300">0% (0 / 0 tasks)</span>
+                  </div>
+                  <p class="text-[11px] text-slate-400">Completing tasks dynamically boosts subject preparation!</p>
+                </div>
+              </div>
+              <div class="w-full sm:w-48 bg-slate-800 rounded-full h-2.5 overflow-hidden">
+                <div id="todayProgressBar" class="bg-gradient-to-r from-indigo-500 to-emerald-400 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <!-- Task List Container -->
+            <div id="todayTaskList" class="space-y-3">
+              <!-- Dynamically rendered tasks will go here -->
+              <div class="text-center py-12 text-slate-500">
+                <i data-lucide="calendar" class="w-12 h-12 mx-auto mb-3 opacity-30"></i>
+                <p class="text-sm">No study tasks generated yet. Add subjects to build your plan.</p>
+              </div>
+            </div>
+
+            <!-- Plan Summary & Distribution Insight Footer -->
+            <div class="pt-4 border-t border-white/10 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400">
+              <div class="flex items-center gap-2">
+                <span class="inline-block w-2 h-2 rounded-full bg-indigo-400"></span>
+                <span id="planTotalTimeSummary">Total: 0 hrs allocated across 0 sessions</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="text-slate-500">Labels:</span>
+                <span class="text-[11px] px-1.5 py-0.5 rounded bg-indigo-500/15 text-indigo-300 font-medium">Concept Review</span>
+                <span class="text-[11px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 font-medium">Problem Solving</span>
+                <span class="text-[11px] px-1.5 py-0.5 rounded bg-cyan-500/15 text-cyan-300 font-medium">Revision</span>
+                <span class="text-[11px] px-1.5 py-0.5 rounded bg-rose-500/15 text-rose-300 font-medium">Practice Questions</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Right 1 Col: Upcoming Exams -->
+        <div class="space-y-4">
+          <div class="glass-panel p-5 sm:p-6 rounded-2xl border border-white/10 space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-white/10">
+              <h3 class="text-base font-bold text-white flex items-center gap-2 brand-font">
+                <i data-lucide="alarm-clock" class="w-4 h-4 text-cyan-400"></i>
+                Upcoming Exams
+              </h3>
+              <button onclick="switchTab('subjectsTab')" class="text-xs text-indigo-400 hover:text-indigo-300 font-semibold flex items-center gap-1">
+                <span>Manage</span>
+                <i data-lucide="arrow-right" class="w-3 h-3"></i>
+              </button>
+            </div>
+
+            <div id="upcomingExamsList" class="space-y-3">
+              <!-- Dynamically populated upcoming exams cards -->
+              <div class="text-center py-8 text-slate-500 text-xs">
+                No upcoming exams registered.
+              </div>
+            </div>
+
+            <!-- Cognitive Spaced Tip -->
+            <div class="p-3.5 rounded-xl bg-slate-900/80 border border-white/5 space-y-1.5">
+              <div class="flex items-center gap-2 text-indigo-400 text-xs font-bold uppercase tracking-wider">
+                <i data-lucide="lightbulb" class="w-3.5 h-3.5"></i>
+                <span>Adaptive Recommendation</span>
+              </div>
+              <p id="miniCoachTip" class="text-xs text-slate-300 leading-relaxed">
+                Prioritize subjects with &lt; 7 days remaining and prep gaps &gt; 50% during morning focus hours.
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 2: PRIORITY ANALYSIS                   -->
+    <!-- ========================================== -->
+    <section id="priorityTab" class="tab-pane hidden space-y-6">
+      
+      <!-- Formula Explanation Card -->
+      <div class="glass-panel p-5 sm:p-6 rounded-2xl border border-white/10 space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-2.5">
+            <div class="p-2 rounded-xl bg-indigo-500/20 text-indigo-300">
+              <i data-lucide="cpu" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h2 class="text-base sm:text-lg font-bold text-white brand-font">Core Priority Algorithm & Analysis</h2>
+              <p class="text-xs text-slate-400">Multi-factor priority calculation evaluating Urgency, Difficulty, and Preparation Gap.</p>
+            </div>
+          </div>
+          <!-- Priority Scale Legend -->
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="text-[11px] px-2.5 py-1 rounded-lg bg-rose-500/20 text-rose-300 font-bold border border-rose-500/30">High Priority (&ge; 70)</span>
+            <span class="text-[11px] px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">Medium Priority (&ge; 45)</span>
+            <span class="text-[11px] px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">Low Priority (&lt; 45)</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-3 border-t border-white/10 text-xs">
+          <div class="p-3 rounded-xl bg-slate-900/60 border border-white/5 space-y-1">
+            <div class="font-bold text-indigo-300 flex items-center justify-between">
+              <span>1. Exam Urgency (40%)</span>
+              <span class="text-slate-400">Weight: 0.40</span>
+            </div>
+            <p class="text-slate-400">Exponential urgency curve based on days remaining until the exam date.</p>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-900/60 border border-white/5 space-y-1">
+            <div class="font-bold text-amber-300 flex items-center justify-between">
+              <span>2. Difficulty Score (25%)</span>
+              <span class="text-slate-400">Weight: 0.25</span>
+            </div>
+            <p class="text-slate-400">Easy = 20 &bull; Medium = 50 &bull; Hard = 80.</p>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-900/60 border border-white/5 space-y-1">
+            <div class="font-bold text-cyan-300 flex items-center justify-between">
+              <span>3. Preparation Gap (35%)</span>
+              <span class="text-slate-400">Weight: 0.35</span>
+            </div>
+            <p class="text-slate-400">Calculated as: <code>100 - Current Preparation %</code>.</p>
+          </div>
+        </div>
+
+        <!-- Formula display -->
+        <div class="text-center bg-slate-950/70 p-2.5 rounded-xl border border-white/5 font-mono text-xs text-indigo-200">
+          Priority = (Urgency × 0.40) + (Difficulty × 0.25) + (PreparationGap × 0.35)
+        </div>
+      </div>
+
+      <!-- Priority Analysis Table Card -->
+      <div class="glass-panel rounded-2xl border border-white/10 overflow-hidden">
+        <div class="p-5 border-b border-white/10 flex flex-wrap items-center justify-between gap-3">
+          <h3 class="text-base font-bold text-white brand-font flex items-center gap-2">
+            <i data-lucide="bar-chart-2" class="w-4 h-4 text-cyan-400"></i>
+            Subject Priority Matrix
+          </h3>
+          <span class="text-xs text-slate-400">Ranked from highest to lowest study priority</span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-slate-900/80 text-[11px] uppercase tracking-wider text-slate-400 border-b border-white/10 font-bold">
+              <tr>
+                <th class="px-5 py-3.5">Rank & Subject</th>
+                <th class="px-4 py-3.5">Exam Date</th>
+                <th class="px-4 py-3.5">Days Left</th>
+                <th class="px-4 py-3.5">Difficulty</th>
+                <th class="px-4 py-3.5">Prep %</th>
+                <th class="px-4 py-3.5">Prep Gap</th>
+                <th class="px-4 py-3.5">Score Breakdown</th>
+                <th class="px-4 py-3.5 text-center">Priority Score</th>
+                <th class="px-5 py-3.5 text-right">Priority Level</th>
+              </tr>
+            </thead>
+            <tbody id="priorityTableBody" class="divide-y divide-white/5">
+              <!-- Dynamically populated priority rows -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 3: MANAGE SUBJECTS                     -->
+    <!-- ========================================== -->
+    <section id="subjectsTab" class="tab-pane hidden space-y-6">
+      
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h2 class="text-xl font-bold text-white brand-font flex items-center gap-2">
+            <i data-lucide="book-open" class="w-5 h-5 text-indigo-400"></i>
+            Manage Subjects & Exams
+          </h2>
+          <p class="text-xs text-slate-400 mt-1">Add, modify, or remove your academic subjects and exam deadlines.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="resetToSampleSubjects()" class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-semibold text-slate-300 border border-white/10 transition flex items-center gap-1.5">
+            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+            <span>Load Default Exams</span>
+          </button>
+          <button onclick="openSubjectModal()" class="btn-glow px-4 py-1.5 rounded-xl text-xs sm:text-sm font-semibold text-white flex items-center gap-2">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            <span>Add New Subject</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Subject Cards Grid -->
+      <div id="subjectsCardGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Dynamically rendered subject cards -->
+      </div>
+
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 4: AI STUDY COACH                      -->
+    <!-- ========================================== -->
+    <section id="aiCoachTab" class="tab-pane hidden space-y-6">
+      
+      <!-- Coach Header Banner -->
+      <div class="glass-panel p-5 sm:p-6 rounded-2xl border border-white/10 relative overflow-hidden">
+        <div class="relative z-10 flex flex-wrap items-center justify-between gap-4">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-500 to-cyan-400 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30">
+              <i data-lucide="bot" class="w-7 h-7"></i>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h2 class="text-lg font-bold text-white brand-font">SmartStudy AI Strategic Coach</h2>
+                <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">Active</span>
+              </div>
+              <p class="text-xs text-slate-400 mt-0.5">Concise, cognitive-science backed recommendations tailored to your upcoming exams.</p>
+            </div>
+          </div>
+          <button onclick="refreshAICoachRecommendations()" class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-semibold text-slate-200 border border-white/10 flex items-center gap-1.5 transition">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-400"></i>
+            <span>Refresh Analysis</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Dynamic Recommendations Container -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Left 2 Cols: Strategic Directives & Subject Breakdown -->
+        <div class="lg:col-span-2 space-y-5">
+          
+          <!-- Primary Triage Card -->
+          <div id="coachPrimaryTriageCard" class="glass-panel p-5 rounded-2xl border border-white/10 space-y-3">
+            <!-- Rendered by AI Engine -->
+          </div>
+
+          <!-- Cognitive Interleaving & Study Rhythm Advice -->
+          <div id="coachRhythmCard" class="glass-panel p-5 rounded-2xl border border-white/10 space-y-3">
+            <!-- Rendered by AI Engine -->
+          </div>
+
+          <!-- Subject by Subject Strategic Insights -->
+          <div class="glass-panel p-5 rounded-2xl border border-white/10 space-y-4">
+            <h3 class="text-base font-bold text-white brand-font flex items-center gap-2">
+              <i data-lucide="target" class="w-4 h-4 text-rose-400"></i>
+              Subject-by-Subject Action Plan
+            </h3>
+            <div id="coachSubjectCardsList" class="space-y-3">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right 1 Col: Interactive Coach Q&A -->
+        <div class="space-y-4">
+          <div class="glass-panel p-5 rounded-2xl border border-white/10 space-y-4">
+            <div class="flex items-center gap-2 pb-3 border-b border-white/10">
+              <i data-lucide="message-square-code" class="w-4 h-4 text-indigo-400"></i>
+              <h3 class="text-sm font-bold text-white brand-font">Ask Study Coach</h3>
+            </div>
+            
+            <p class="text-xs text-slate-400">Select a common scenario or ask about exam preparation strategy:</p>
+
+            <!-- Quick Question Chips -->
+            <div class="flex flex-col gap-2">
+              <button onclick="askCoachPrompt('triage')" class="text-left p-2.5 rounded-xl bg-slate-900/60 hover:bg-slate-800 text-xs text-slate-300 border border-white/5 transition flex items-center justify-between">
+                <span>🔥 How should I triage my highest-priority subject?</span>
+                <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-500"></i>
+              </button>
+              <button onclick="askCoachPrompt('cramming')" class="text-left p-2.5 rounded-xl bg-slate-900/60 hover:bg-slate-800 text-xs text-slate-300 border border-white/5 transition flex items-center justify-between">
+                <span>⏱️ How to avoid burnout when exams are close?</span>
+                <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-500"></i>
+              </button>
+              <button onclick="askCoachPrompt('interleaving')" class="text-left p-2.5 rounded-xl bg-slate-900/60 hover:bg-slate-800 text-xs text-slate-300 border border-white/5 transition flex items-center justify-between">
+                <span>🔀 Why switch between hard and easy subjects?</span>
+                <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-500"></i>
+              </button>
+              <button onclick="askCoachPrompt('retention')" class="text-left p-2.5 rounded-xl bg-slate-900/60 hover:bg-slate-800 text-xs text-slate-300 border border-white/5 transition flex items-center justify-between">
+                <span>🧠 Best active recall technique for college exams?</span>
+                <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-500"></i>
+              </button>
+            </div>
+
+            <!-- Custom Question Input -->
+            <div class="pt-2">
+              <div class="flex gap-2">
+                <input id="coachCustomInput" type="text" placeholder="Type a study question..." class="flex-1 glass-input rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500">
+                <button onclick="submitCustomCoachQuestion()" class="btn-glow px-3 py-2 rounded-xl text-white text-xs font-semibold">Ask</button>
+              </div>
+            </div>
+
+            <!-- Coach Response Display Box -->
+            <div id="coachResponseBox" class="p-3.5 rounded-xl bg-slate-950/80 border border-indigo-500/20 text-xs text-slate-300 space-y-2 leading-relaxed">
+              <div class="flex items-center gap-2 text-indigo-400 font-bold">
+                <i data-lucide="sparkle" class="w-3.5 h-3.5"></i>
+                <span id="coachResponseTitle">Coach Advice</span>
+              </div>
+              <div id="coachResponseContent">
+                Click any of the questions above or ask your own question to receive targeted study guidance.
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 5: FOCUS POMODORO TIMER                -->
+    <!-- ========================================== -->
+    <section id="timerTab" class="tab-pane hidden space-y-6">
+      
+      <div class="max-w-xl mx-auto glass-panel p-6 sm:p-8 rounded-3xl border border-white/10 text-center space-y-6">
+        
+        <div>
+          <span class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">Focus Engine</span>
+          <h2 class="text-xl sm:text-2xl font-extrabold text-white brand-font mt-2">Active Study Session</h2>
+          <p id="timerActiveTopic" class="text-xs sm:text-sm text-indigo-300 mt-1">General Study Focus Block</p>
+        </div>
+
+        <!-- Timer Circular Display -->
+        <div class="py-6">
+          <div class="inline-block relative">
+            <div class="w-56 h-56 rounded-full border-4 border-indigo-500/30 flex items-center justify-center bg-slate-900/50 shadow-2xl shadow-indigo-500/20">
+              <span id="timerDisplay" class="font-mono text-5xl sm:text-6xl font-extrabold text-white tracking-tight">25:00</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Timer Controls -->
+        <div class="flex items-center justify-center gap-3">
+          <button id="timerToggleBtn" onclick="togglePomodoroTimer()" class="btn-glow px-6 py-2.5 rounded-xl text-sm font-bold text-white flex items-center gap-2">
+            <i id="timerToggleIcon" data-lucide="play" class="w-4 h-4"></i>
+            <span id="timerToggleText">Start Session</span>
+          </button>
+          <button onclick="resetPomodoroTimer()" class="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-xs sm:text-sm font-semibold text-slate-300 border border-white/10 transition">
+            Reset
+          </button>
+        </div>
+
+        <!-- Preset Durations -->
+        <div class="flex items-center justify-center gap-2 pt-2">
+          <button onclick="setTimerDuration(25)" class="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 border border-white/5">25m Focus</button>
+          <button onclick="setTimerDuration(45)" class="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 border border-white/5">45m Deep Work</button>
+          <button onclick="setTimerDuration(5)" class="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 border border-white/5">5m Break</button>
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ========================================== -->
+  <!-- MODAL: ADD / EDIT SUBJECT                  -->
+  <!-- ========================================== -->
+  <div id="subjectModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
+    <div class="glass-panel w-full max-w-md p-6 rounded-2xl border border-white/10 space-y-5 animate-in fade-in zoom-in-95 duration-200">
+      
+      <div class="flex items-center justify-between pb-3 border-b border-white/10">
+        <h3 id="subjectModalTitle" class="text-base font-bold text-white brand-font flex items-center gap-2">
+          <i data-lucide="book-plus" class="w-4 h-4 text-indigo-400"></i>
+          Add New Subject
+        </h3>
+        <button onclick="closeSubjectModal()" class="text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="subjectForm" onsubmit="handleSubjectSubmit(event)" class="space-y-4 text-xs">
+        <input type="hidden" id="subjectFormId" value="">
+
+        <!-- Subject Name -->
+        <div class="space-y-1.5">
+          <label class="font-semibold text-slate-300">Subject Name <span class="text-rose-400">*</span></label>
+          <input id="subjectNameInput" type="text" required placeholder="e.g. Operating Systems, Data Structures" class="w-full glass-input rounded-xl px-3 py-2 text-white">
+        </div>
+
+        <!-- Exam Date -->
+        <div class="space-y-1.5">
+          <label class="font-semibold text-slate-300">Exam Date <span class="text-rose-400">*</span></label>
+          <input id="subjectDateInput" type="date" required class="w-full glass-input rounded-xl px-3 py-2 text-white">
+          <p id="examDaysPreview" class="text-[11px] text-slate-400">Select an exam date</p>
+        </div>
+
+        <!-- Subject Difficulty -->
+        <div class="space-y-1.5">
+          <label class="font-semibold text-slate-300">Difficulty Rating</label>
+          <div class="grid grid-cols-3 gap-2">
+            <label class="cursor-pointer">
+              <input type="radio" name="difficultyRadio" value="Easy" class="peer sr-only">
+              <div class="p-2.5 rounded-xl border border-white/10 bg-slate-900/60 peer-checked:bg-emerald-500/20 peer-checked:border-emerald-500/50 peer-checked:text-emerald-300 text-center font-semibold transition text-slate-300">
+                🟢 Easy (20)
+              </div>
+            </label>
+            <label class="cursor-pointer">
+              <input type="radio" name="difficultyRadio" value="Medium" checked class="peer sr-only">
+              <div class="p-2.5 rounded-xl border border-white/10 bg-slate-900/60 peer-checked:bg-amber-500/20 peer-checked:border-amber-500/50 peer-checked:text-amber-300 text-center font-semibold transition text-slate-300">
+                🟡 Medium (50)
+              </div>
+            </label>
+            <label class="cursor-pointer">
+              <input type="radio" name="difficultyRadio" value="Hard" class="peer sr-only">
+              <div class="p-2.5 rounded-xl border border-white/10 bg-slate-900/60 peer-checked:bg-rose-500/20 peer-checked:border-rose-500/50 peer-checked:text-rose-300 text-center font-semibold transition text-slate-300">
+                🔴 Hard (80)
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Preparation Percentage -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <label class="font-semibold text-slate-300">Current Preparation Percentage</label>
+            <span id="prepSliderValue" class="font-bold text-indigo-300 text-sm">40%</span>
+          </div>
+          <input id="subjectPrepSlider" type="range" min="0" max="100" value="40" class="w-full accent-indigo-500 cursor-pointer" oninput="updatePrepSliderDisplay(this.value)">
+          <div class="flex justify-between text-[10px] text-slate-500 font-mono">
+            <span>0% (Untouched)</span>
+            <span>50% (Half Prepared)</span>
+            <span>100% (Mastered)</span>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-white/10">
+          <button type="button" onclick="closeSubjectModal()" class="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 font-semibold transition">Cancel</button>
+          <button type="submit" class="btn-glow px-5 py-2 rounded-xl text-white font-semibold flex items-center gap-1.5">
+            <i data-lucide="check" class="w-4 h-4"></i>
+            <span id="subjectSubmitBtnText">Save Subject</span>
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: ADJUST DAILY HOURS                  -->
+  <!-- ========================================== -->
+  <div id="hoursModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
+    <div class="glass-panel w-full max-w-sm p-6 rounded-2xl border border-white/10 space-y-5 animate-in fade-in zoom-in-95 duration-200 text-center">
+      
+      <div class="w-12 h-12 rounded-2xl bg-cyan-500/20 text-cyan-400 mx-auto flex items-center justify-center">
+        <i data-lucide="clock" class="w-6 h-6"></i>
+      </div>
+
+      <div>
+        <h3 class="text-base font-bold text-white brand-font">Available Daily Study Hours</h3>
+        <p class="text-xs text-slate-400 mt-1">SmartStudy AI distributes your available hours based on subject priority scores.</p>
+      </div>
+
+      <div class="py-2 space-y-3">
+        <div class="text-3xl font-extrabold brand-font text-white" id="modalHoursDisplay">4.5 hrs</div>
+        <input id="modalHoursSlider" type="range" min="1" max="12" step="0.5" value="4.5" class="w-full accent-cyan-400 cursor-pointer" oninput="updateModalHoursDisplay(this.value)">
+        <div class="flex justify-between text-[10px] text-slate-500">
+          <span>1 hr</span>
+          <span>6 hrs</span>
+          <span>12 hrs</span>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-center gap-2 pt-2">
+        <button onclick="closeHoursSliderModal()" class="w-full py-2 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-semibold text-slate-300 transition">Cancel</button>
+        <button onclick="saveModalHours()" class="w-full btn-glow py-2 rounded-xl text-xs font-semibold text-white">Apply & Adapt Plan</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Notification Toast Container -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- Footer -->
+  <footer class="mt-auto border-t border-white/10 bg-slate-950/60 py-4 px-4 text-center text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+      <div class="flex items-center gap-1.5">
+        <span class="font-bold text-slate-400">SmartStudy AI</span>
+        <span>&bull; Adaptive Multi-Exam College Study Platform</span>
+      </div>
+      <div class="text-[11px] text-slate-400">
+        Data saved locally in browser &bull; Built for college exam excellence
+      </div>
+    </div>
+  </footer>
+
+  <!-- Application Script -->
+  <script src="app.js"></script>
+</body>
+</html>

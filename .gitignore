@@ -1,0 +1,30 @@
+# Environment and credentials
+.env
+*.env
+*.key
+*.pem
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+
+# Testing and coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Logs and runtime artifacts
+*.log
+logs/
+
+# IDE and OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
